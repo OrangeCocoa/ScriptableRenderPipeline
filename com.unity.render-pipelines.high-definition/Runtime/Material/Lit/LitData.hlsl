@@ -3,15 +3,19 @@
 //-------------------------------------------------------------------------------------
 
 // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
+#ifndef SHADER_STAGE_RAY_TRACING
 #define SURFACE_GRADIENT
+#endif
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
+#ifndef SHADER_STAGE_RAY_TRACING
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl"
+#endif
 
 //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/SphericalCapPivot/SPTDistribution.hlsl"
 //#define SPECULAR_OCCLUSION_USE_SPTD
@@ -166,10 +170,13 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
                         input.positionRWS, input.tangentToWorld[2].xyz, layerTexCoord);
 }
 
+#if !defined(SHADER_STAGE_RAY_TRACING)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataDisplacement.hlsl"
+#endif
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitBuiltinData.hlsl"
 
-void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
 {
 #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
     LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
@@ -187,10 +194,31 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
     GetLayerTexCoord(input, layerTexCoord);
 
+#if !defined(SHADER_STAGE_RAY_TRACING)
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
-
-#ifdef _DEPTHOFFSET_ON
+    #ifdef _DEPTHOFFSET_ON
     ApplyDepthOffsetPositionInput(V, depthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
+    #endif
+#else
+    float depthOffset = 0.0;
+#endif
+
+#if defined(_ALPHATEST_ON)
+    float alpha = SAMPLE_UVMAPPING_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, layerTexCoord.base).a * _BaseColor.a;
+
+    // Perform alha test very early to save performance (a killed pixel will not sample textures)
+    float alphaCutoff = _AlphaCutoff;
+    #ifdef CUTOFF_TRANSPARENT_DEPTH_PREPASS
+    alphaCutoff = _AlphaCutoffPrepass;
+    #elif defined(CUTOFF_TRANSPARENT_DEPTH_POSTPASS)
+    alphaCutoff = _AlphaCutoffPostpass;
+    #endif
+
+    #if SHADERPASS == SHADERPASS_SHADOWS 
+        GENERIC_ALPHA_TEST(alpha, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
+    #else
+        GENERIC_ALPHA_TEST(alpha, _AlphaCutoff);
+    #endif
 #endif
 
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData
@@ -257,8 +285,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+
+    RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataMeshModification.hlsl"
-
+#if !defined(SHADER_STAGE_RAY_TRACING)
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDataMeshModification.hlsl"
+#endif
 #endif // #ifndef LAYERED_LIT_SHADER

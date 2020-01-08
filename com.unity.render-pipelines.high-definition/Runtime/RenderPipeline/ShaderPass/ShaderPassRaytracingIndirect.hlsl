@@ -6,12 +6,12 @@
 void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
 	// The first thing that we should do is grab the intersection vertice
-    IntersectionVertex currentvertex;
-    GetCurrentIntersectionVertex(attributeData, currentvertex);
+    IntersectionVertex currentVertex;
+    GetCurrentIntersectionVertex(attributeData, currentVertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, rayIntersection.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, rayIntersection.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;
@@ -29,7 +29,8 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
+    bool alphaTestResult;
+    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, alphaTestResult);
 
     // Compute the bsdf data
     BSDFData bsdfData =  ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
@@ -149,12 +150,12 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     IgnoreHit();
 #else
     // The first thing that we should do is grab the intersection vertice
-    IntersectionVertex currentvertex;
-    GetCurrentIntersectionVertex(attributeData, currentvertex);
+    IntersectionVertex currentVertex;
+    GetCurrentIntersectionVertex(attributeData, currentVertex);
 
     // Build the Frag inputs from the intersection vertice
     FragInputs fragInput;
-    BuildFragInputsFromIntersection(currentvertex, rayIntersection.incidentDirection, fragInput);
+    BuildFragInputsFromIntersection(currentVertex, rayIntersection.incidentDirection, fragInput);
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;
@@ -170,10 +171,11 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    bool isVisible = GetSurfaceDataFromIntersection(fragInput, viewWS, posInput, currentvertex, rayIntersection.cone, surfaceData, builtinData);
-
+    bool alphaTestResult;
+    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, alphaTestResult);
+    
     // If this fella should be culled, then we cull it
-    if(!isVisible)
+    if(!alphaTestResult)
     {
         IgnoreHit();
     }
