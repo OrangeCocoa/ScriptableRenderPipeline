@@ -77,8 +77,8 @@ void ClosestHit(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    bool alphaTestResult;
-    GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, alphaTestResult);
+    bool isVisible;
+    GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
 
     // Check if we want to compute direct and emissive lighting for current depth
     bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
@@ -234,11 +234,11 @@ void AnyHit(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    bool alphaTestResult;
-    GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, alphaTestResult);
+    bool isVisible;
+    GetSurfaceAndBuiltinData(fragInput, -WorldRayDirection(), posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
 
     // If this fella should be culled, then we cull it
-    if (!alphaTestResult)
+    if (!isVisible)
         IgnoreHit();
 
     // If the depth information is marked as invalid, we are shooting a transmission ray

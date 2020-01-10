@@ -1058,7 +1058,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static List<string> s_ShaderStagesRayTracing = new List<string>()
         {
-            "#pragma raytracing test",
+            "#pragma raytracing surface_shader",
         };
 
         public static void SetStencilStateForDepth(ref Pass pass)

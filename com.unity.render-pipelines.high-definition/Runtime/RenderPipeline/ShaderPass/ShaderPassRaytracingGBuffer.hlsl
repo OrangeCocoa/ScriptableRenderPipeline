@@ -26,8 +26,8 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    bool alphaTestResult;
-    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersectionGbuffer.cone, alphaTestResult);
+    bool isVisible;
+    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersectionGbuffer.cone, isVisible);
 
     // Sometimes, we only  want to use the diffuse when we compute the indirect diffuse
     #ifdef DIFFUSE_LIGHTING_ONLY
@@ -70,11 +70,11 @@ void AnyHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_RayP
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
     BuiltinData builtinData;
-    bool alphaTestResult;
-    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersectionGbuffer.cone, alphaTestResult);
+    bool isVisible;
+    GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersectionGbuffer.cone, isVisible);
 
     // If this fella should be culled, then we cull it
-    if(!alphaTestResult)
+    if(!isVisible)
     {
         IgnoreHit();
     }
