@@ -38,7 +38,7 @@
 #define MERGE_NAME_CONCAT(Name, ...) Name ## __VA_ARGS__
 #define MERGE_NAME(X, Y) MERGE_NAME_CONCAT(X, Y)
 
-#define RAY_TRACING_OPTIONAL_PARAMETERS, IntersectionVertex intersectionVertex, RayCone rayCone, out bool alphaTestResult
+#define RAY_TRACING_OPTIONAL_PARAMETERS , IntersectionVertex intersectionVertex, RayCone rayCone, out bool alphaTestResult
 #define GENERIC_ALPHA_TEST(alphaValue, alphaCutoffValue) DoAlphaTest(alphaValue, alphaCutoffValue, alphaTestResult); if (!alphaTestResult) {alphaTestResult = false; return;}
 #define RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS alphaTestResult = true;
 #else
