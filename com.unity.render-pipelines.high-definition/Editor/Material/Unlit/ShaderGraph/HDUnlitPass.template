@@ -165,7 +165,7 @@ $include("SharedCode.template.hlsl")
         // copy across graph values, if defined
         $SurfaceDescription.Color: surfaceData.color = surfaceDescription.Color;
 
-#if defined(DEBUG_DISPLAY)
+#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
         {
             // TODO

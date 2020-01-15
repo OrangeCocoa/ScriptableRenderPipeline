@@ -794,7 +794,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
 #endif
 
-#if defined(DEBUG_DISPLAY)
+#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
         surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base0.uv, _BaseColorMap0, _BaseColorMap0_TexelSize, _BaseColorMap0_MipInfo, surfaceData.baseColor);

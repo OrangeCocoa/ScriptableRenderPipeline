@@ -308,7 +308,7 @@ Pass
         surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #endif
 
-#ifdef DEBUG_DISPLAY
+#if defined(DEBUG_DISPLAY) && !defined(SHADER_STAGE_RAY_TRACING)
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
         {
             // TODO: need to update mip info
